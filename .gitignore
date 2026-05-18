@@ -1,0 +1,30 @@
+# Virtual Environment
+venv/
+plant_env/
+env/
+
+# Python caching
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Massive Raw Datasets (Do NOT push to GitHub)
+leafsnap-dataset/
+
+# Processed Data Split Folders (Do NOT push to GitHub)
+processed_data/
+
+# Machine Learning Large Weights (Too large for standard Git)
+*.keras
+*.h5
+
+# Local Django Environment / Database secrets
+db.sqlite3
+.env
+
+# System files
+.DS_Store
+Thumbs.db
+
+*.zip
