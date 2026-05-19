@@ -16,7 +16,9 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from plant_backend.views import test_prediction_view # ◄ Import view
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('test-model/', test_prediction_view, name='test_model'), # ◄ Add link route
 ]
