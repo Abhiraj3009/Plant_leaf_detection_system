@@ -39,13 +39,16 @@ def test_prediction_view(request):
         file_name = default_storage.save(f"tmp/{file.name}", file)
         file_path = os.path.join(settings.MEDIA_ROOT, file_name)
         
+        # Initialize context defaults
+        plant_record = None
+        confidence = 0.0
+        predicted_folder_id = "Model file not found or loaded"
+
         try:
             # 2. Preprocess image exactly how your train.py did it
-            # (Assuming standard 224x224 RGB input - update dimensions if you used 128x128 or grayscale)
             img = tf.keras.utils.load_img(file_path, target_size=(224, 224))
             img_array = tf.keras.utils.img_to_array(img)
             img_array = np.expand_dims(img_array, axis=0)  # Make batch shape (1, 224, 224, 3)
-            #img_array = img_array / 255.0                  # Rescale normalization
             
             # 3. Run model prediction
             if model:
@@ -56,31 +59,25 @@ def test_prediction_view(request):
                 # Get folder label string from our index array
                 predicted_folder_id = class_labels[predicted_class_idx]
                 
-                # 4. Fetch additional descriptive metadata from PostgreSQL
+                # 4. Fetch the entire descriptive database object from PostgreSQL
                 try:
-                    plant_db_record = PlantInfo.objects.get(folder_id=predicted_folder_id)
-                    common_name = plant_db_record.common_name
+                    plant_record = PlantInfo.objects.get(folder_id=predicted_folder_id)
                 except PlantInfo.DoesNotExist:
-                    common_name = "Species matches, but no DB text profile exists yet."
-            else:
-                predicted_folder_id = "Model file not found or loaded"
-                common_name = "N/A"
-                confidence = 0.0
+                    plant_record = None
 
         except Exception as e:
             print(f"Prediction crash log: {e}")
             predicted_folder_id = f"Processing Error: {e}"
-            common_name = "Error"
             confidence = 0.0
         finally:
             # Clean up the file after prediction so your computer doesn't get cluttered
             if os.path.exists(file_path):
                 os.remove(file_path)
 
-        # Send results back to the template screen
+        # Send comprehensive results back to the template screen
         return render(request, 'upload.html', {
             'prediction': predicted_folder_id,
-            'common_name': common_name,
+            'plant_record': plant_record,  # Exposes .common_name, .botanical_name, and .medicinal_benefits
             'confidence': confidence
         })
 
